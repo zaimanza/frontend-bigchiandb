@@ -5,15 +5,15 @@ const bigchaindb_database = () => {
 
     const API_PATH: string = 'http://13.215.249.21:9984/api/v1/'
     
-    const fetchLatestTransaction = async (assetId: string, res: Response) => {
+    const fetchLatestTransaction = async (props: {assetId: string, res: Response}) => {
         try {
             const list: AxiosResponse<any, any>  = await axios.get(
-                `${API_PATH}transactions?asset_id=${assetId}&operation=TRANSFER&last_tx=${true}`
+                `${API_PATH}transactions?asset_id=${props.assetId}&operation=TRANSFER&last_tx=${true}`
                 )
 
             return await list.data[0] ?? {}
         } catch (error) {
-            res.status(400).json(error);
+            props.res.status(400).json(error);
         }
     }
     return { fetchLatestTransaction }

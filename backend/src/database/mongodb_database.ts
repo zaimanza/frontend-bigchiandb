@@ -9,6 +9,7 @@ const mongodb_database = () => {
     const connectDB = async () => {
 
         try {
+            console.log("connecting database")
             client = new MongoClient("mongodb://13.215.249.21:27017/bigchain")
             await client.connect()
             console.log('Connected successfully to server')

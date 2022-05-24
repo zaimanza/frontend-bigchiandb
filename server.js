@@ -1,7 +1,9 @@
 const http = require('http');
-const useMongodb = require("./modules/useMongodb");
+const useMongodb = require("./modules/useMongodb")
+const usePlayer = require('./modules/usePlayer')
 
 const { connectDB } = useMongodb()
+const { player_login, player_register } = usePlayer()
 connectDB()
 
 const express = require("express");
@@ -37,7 +39,20 @@ app.use("/player", playerRoutes)
 app.use("/game", gameRoutes)
 
 // index page
-app.get('/', function (req, res) {
+app.get('/login', async (req, res) => {
+    const register_result = await player_login({
+        mnemonic: "moment conduct device congress awkward grain team gas flight option culture sign"
+    })
+    console.table(register_result)
+    res.render('pages/index')
+})
+app.get('/register', async (req, res) => {
+    const register_result = await player_register()
+    console.table(register_result)
+    res.render('pages/index')
+})
+app.get('/start_game', async (req, res) => {
+
     res.render('pages/index')
 })
 

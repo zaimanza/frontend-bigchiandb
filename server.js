@@ -46,12 +46,19 @@ app.get('/login', async (req, res) => {
     console.table(register_result)
     res.render('pages/index')
 })
+
 app.get('/register', async (req, res) => {
     const register_result = await player_register()
     console.table(register_result)
     res.render('pages/index')
 })
+
 app.get('/start_game', async (req, res) => {
+
+    res.render('pages/index')
+})
+
+app.get('/append_game', async (req, res) => {
 
     res.render('pages/index')
 })

@@ -1,16 +1,14 @@
 const express = require('express');
 const bip39 = require('bip39');
 const BigChainDB = require('bigchaindb-driver');
-const useGames = require('../modules/useGames');
 const useMongodb = require('../modules/useMongodb');
 const useBigchaindb = require('../modules/useBigchaindb');
 const { compareKeys } = require('../middleware/compareKeys');
 const router = express.Router();
 
-const { createSingleAsset, updateSingleAsset } = useGames()
+const { fetchLatestTransaction, createSingleAsset, updateSingleAsset } = useBigchaindb()
 
 const { Assets, Transactions } = useMongodb()
-const { fetchLatestTransaction } = useBigchaindb()
 
 router.get('/', async (req, res, next) => {
     try {
@@ -55,10 +53,9 @@ router.post('/', async (req, res, next) => {
         let isCanCreate = true
 
         const isSame = compareKeys(req.body.asset, {
-            game_name: "",
+            game_type: "",
             game_category: "",
-            game_genre: "",
-            game_created_at: ""
+            game_name: ""
         })
 
         if (!isSame) isCanCreate = false

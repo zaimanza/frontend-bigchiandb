@@ -1,10 +1,23 @@
-const BigChainDB = require('bigchaindb-driver');
-const bip39 = require('bip39');
+const axios = require('axios').default
+const BigChainDB = require('bigchaindb-driver')
+const bip39 = require('bip39')
 
-const useGames = () => {
+const useBigchaindb = () => {
     const API_PATH = 'http://18.141.24.92:8000/api/v1/'
     const conn = new BigChainDB.Connection(API_PATH)
+    const fetchLatestTransaction = async (assetId) => {
+        try {
+            // console.log(assetId)
+            let list = await axios.get(`${API_PATH}transactions?asset_id=${assetId}&operation=TRANSFER&last_tx=${true}`)
+            // fetch(
+            //     `${API_PATH}transactions?asset_id=${assetId}&operation=TRANSFER&last_tx=${true}`,
+            // )
 
+            return await list.data[0] ?? {}
+        } catch (error) {
+            res.status(400).json(error);
+        }
+    }
     const createSingleAsset = async ({ asset, metadata, publicKey, privateKey }) => {
         // try {
         const txCreatePaint = BigChainDB.Transaction.makeCreateTransaction(
@@ -28,7 +41,6 @@ const useGames = () => {
         //     res.status(400).json(error);
         // }
     }
-
     const updateSingleAsset = async ({ txCreatedID, publicKey, privateKey, metadata }) => {
         // try {
         let txCreated = await conn.getTransaction(txCreatedID)
@@ -60,8 +72,7 @@ const useGames = () => {
         //     res.status(400).json(error);
         // }
     }
-
-    return { createSingleAsset, updateSingleAsset }
+    return { fetchLatestTransaction, createSingleAsset, updateSingleAsset }
 }
 
-module.exports = useGames
+module.exports = useBigchaindb

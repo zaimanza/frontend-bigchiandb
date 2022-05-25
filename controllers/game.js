@@ -12,34 +12,9 @@ const { Assets, Transactions } = useMongodb()
 
 router.get('/', async (req, res, next) => {
     try {
-        const assetsModel = await Assets()
-        const transactionsModel = await Transactions()
+        // get top 20
+        // find by asset utk cari game, metadata utk cari tarikh and score utk filter
 
-        const fetchedTransactions = await transactionsModel.find({
-            "operation": "CREATE",
-            "inputs.owners_before": req.body.publicKey
-        }, { projection: { id: 1, _id: 0 } }).toArray()
-
-        let fetchedFull = []
-
-        for (const transaction of fetchedTransactions) {
-            let latestTransaction = await fetchLatestTransaction(transaction.id)
-
-            const dataAsset = await assetsModel.find({
-                "id": transaction.id,
-
-            }, { projection: { data: 1, _id: 0 } }).toArray()
-
-            console.log(dataAsset[0].data)
-
-            latestTransaction = await {
-                ...latestTransaction,
-                asset: dataAsset[0].data
-            }
-            fetchedFull.push(latestTransaction)
-        }
-
-        res.status(200).json(fetchedFull);
     } catch (error) {
         res.status(400).json(error);
     }

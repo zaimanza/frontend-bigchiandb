@@ -1,10 +1,7 @@
 const http = require('http');
 const useMongodb = require("./modules/useMongodb")
 const usePlayer = require('./modules/usePlayer')
-
-const { connectDB } = useMongodb()
-const { player_login, player_register } = usePlayer()
-connectDB()
+const useGame = require('./modules/useGame')
 
 const express = require("express");
 const app = express();
@@ -13,6 +10,13 @@ const bodyParser = require("body-parser");
 
 const playerRoutes = require("./controllers/player");
 const gameRoutes = require("./controllers/game");
+
+
+
+const { connectDB } = useMongodb()
+const { createGame, appendGame } = useGame()
+const { player_login, player_register, getPlayer } = usePlayer()
+connectDB()
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -35,7 +39,6 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs')
 
 // Routes which should handle requests
-app.use("/player", playerRoutes)
 app.use("/game", gameRoutes)
 
 // index page
@@ -54,12 +57,40 @@ app.get('/register', async (req, res) => {
 })
 
 app.get('/start_game', async (req, res) => {
+    const player = await getPlayer()
 
+    await createGame({
+        asset: {
+            game_type: "mmo",
+            game_category: "adventure",
+            game_name: "mario cart1"
+        },
+        metadata: {
+            score: 0,
+            submission_date: new Date().toISOString()
+        },
+        publicKey: player.publicKey,
+        privateKey: player.privateKey
+    })
     res.render('pages/index')
 })
 
 app.get('/append_game', async (req, res) => {
+    const player = await getPlayer()
 
+    await appendGame({
+        asset: {
+            game_type: "mmo",
+            game_category: "adventure",
+            game_name: "mario cart"
+        },
+        metadata: {
+            score: 8,
+            submission_date: new Date().toISOString()
+        },
+        publicKey: player.publicKey,
+        privateKey: player.privateKey
+    })
     res.render('pages/index')
 })
 

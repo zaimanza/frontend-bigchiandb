@@ -11,8 +11,8 @@ const useLocalStorage = () => {
         await localStorage.setItem(key, value)
     }
 
-    const getItem = async ({ key, }) => {
-        await localStorage.getItem(key)
+    const getItem = async ({ key }) => {
+        return await localStorage.getItem(key)
     }
 
     return { setItem, getItem }

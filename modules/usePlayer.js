@@ -4,7 +4,7 @@ const useLocalStorage = require('./useLocalStorage')
 
 const usePlayer = () => {
 
-    const { setItem } = useLocalStorage()
+    const { setItem, getItem } = useLocalStorage()
 
     const player_login = async ({ mnemonic }) => {
 
@@ -41,7 +41,15 @@ const usePlayer = () => {
         }
     }
 
-    return { player_login, player_register }
+    const getPlayer = async () => {
+        return await JSON.parse(
+            await getItem({
+                key: "player"
+            })
+        )
+    }
+
+    return { player_login, player_register, getPlayer }
 }
 
 module.exports = usePlayer

@@ -24,6 +24,7 @@ router.get('/', async (req, res, next) => {
             "data.game_name": req.body.game_name
         }, { projection: { id: 1, _id: 0 } }).toArray()
 
+
         const listUser = []
         for (const transaction of fetchedTransactions) {
 
@@ -37,51 +38,51 @@ router.get('/', async (req, res, next) => {
         listUser.sort((a, b) => (a.metadata.score < b.metadata.score) ? 1 : -1)
         const top20Player = listUser.slice(0, 20)
 
-        // const fetchedData = await assetsModel.aggregate([
-        //     { $match: { "data.game_name": req.body.game_name } },
-        //     {
-        //         $lookup: {
-        //             from: "metadata",
-        //             let: { assetId: "$id" },
-        //             pipeline: [{
-        //                 $match: {
-        //                     $expr: {
-        //                         $and: [
-        //                             { $eq: ["$id", "$$assetId"] },
-        //                             // {
-        //                             //     $eq: [
-        //                             //         { $dayOfMonth: new Date("$metadata.submission_date") },
-        //                             //         { $dayOfMonth: new Date(new Date()) }
+        const aggregate = await assetsModel.aggregate([
+            { $match: { "data.game_name": req.body.game_name } },
+            {
+                $lookup: {
+                    from: "metadata",
+                    let: { assetId: "$id" },
+                    pipeline: [{
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ["$id", "$$assetId"] },
+                                    // {
+                                    //     $eq: [
+                                    //         { $dayOfMonth: new Date("$metadata.submission_date") },
+                                    //         { $dayOfMonth: new Date() }
 
-        //                             //     ]
-        //                             // },
-        //                             // {
-        //                             //     $eq: [
-        //                             //         { $month: new Date("$metadata.submission_date") },
-        //                             //         { $month: new Date() }
+                                    //     ]
+                                    // },
+                                    {
+                                        $eq: [
+                                            { $month: new Date("$metadata.submission_date") },
+                                            { $month: new Date() }
 
-        //                             //     ]
-        //                             // },
-        //                             // {
-        //                             //     $eq: [
-        //                             //         { $year: new Date("$metadata.submission_date") },
-        //                             //         { $year: new Date() }
+                                        ]
+                                    },
+                                    // {
+                                    //     $eq: [
+                                    //         { $year: new Date("$metadata.submission_date") },
+                                    //         { $year: new Date() }
 
-        //                             //     ]
-        //                             // }
-        //                         ]
-        //                     }
-        //                 }
-        //             }],
-        //             as: "metadata",
-        //         },
-        //     },
-        //     { $sort: { "metadata.metadata.score": -1 } },
-        //     { $limit: 20 }
-        // ]).toArray()
+                                    //     ]
+                                    // }
+                                ]
+                            }
+                        }
+                    }],
+                    as: "metadata",
+                },
+            },
+            // { $sort: { "metadata.metadata.score": -1 } },
+            { $limit: 20 }
+        ]).toArray()
 
         // console.log(listUser)
-        res.status(200).json(await top20Player);
+        res.status(200).json(await aggregate);
 
     } catch (error) {
         console.log(error)

@@ -85,7 +85,7 @@ app.get('/append_game', async (req, res) => {
             game_name: "mario cart"
         },
         metadata: {
-            score: 8,
+            score: 9,
             submission_date: new Date().toISOString()
         },
         publicKey: player.publicKey,

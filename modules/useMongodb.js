@@ -18,6 +18,8 @@ const useMongodb = () => {
     }
     const Assets = async () => await db.collection('assets')
     const Transactions = async () => await db.collection('transactions')
-    return { connectDB, Assets, Transactions }
+    const Metadatas = async () => await db.collection('metadatas')
+
+    return { connectDB, Assets, Transactions, Metadatas }
 }
 module.exports = useMongodb

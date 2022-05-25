@@ -4,6 +4,7 @@ const BigChainDB = require('bigchaindb-driver');
 const useMongodb = require('../modules/useMongodb');
 const useBigchaindb = require('../modules/useBigchaindb');
 const { compareKeys } = require('../middleware/compareKeys');
+const { dailyDate } = require('../middleware/dailyDate');
 const router = express.Router();
 
 const { fetchLatestTransaction, createSingleAsset, updateSingleAsset } = useBigchaindb()
@@ -18,50 +19,69 @@ router.get('/', async (req, res, next) => {
         // find by asset utk cari game, metadata utk cari tarikh and score utk filter
 
         console.log(req.body.game_name)
-        const fetchedData = await assetsModel.aggregate([
-            { $match: { "data.game_name": req.body.game_name } },
-            {
-                $lookup: {
-                    from: "metadata",
-                    let: { assetId: "$id" },
-                    pipeline: [{
-                        $match: {
-                            $expr: {
-                                $and: [
-                                    { $eq: ["$id", "$$assetId"] },
-                                    {
-                                        $eq: [
-                                            { $dayOfMonth: new Date("$metadata.submission_date") },
-                                            { $dayOfMonth: new Date() }
+        // by date, by top 20
+        const fetchedTransactions = await assetsModel.find({
+            "data.game_name": req.body.game_name
+        }, { projection: { id: 1, _id: 0 } }).toArray()
 
-                                        ]
-                                    },
-                                    {
-                                        $eq: [
-                                            { $month: new Date("$metadata.submission_date") },
-                                            { $month: new Date() }
+        const listUser = []
+        for (const transaction of fetchedTransactions) {
 
-                                        ]
-                                    },
-                                    {
-                                        $eq: [
-                                            { $year: new Date("$metadata.submission_date") },
-                                            { $year: new Date() }
+            const previousData = await fetchLatestTransaction(transaction.id)
+            console.log(previousData.metadata.submission_date)
+            if (dailyDate({ date: previousData.metadata.submission_date }))
+                listUser.push(previousData)
 
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    }],
-                    as: "metadata",
-                },
-            },
-            { $limit: 20 }
-        ]).toArray()
+        }
 
-        console.log(fetchedData)
-        res.status(200).json(await fetchedData);
+        listUser.sort((a, b) => (a.metadata.score < b.metadata.score) ? 1 : -1)
+        const top20Player = listUser.slice(0, 20)
+
+        // const fetchedData = await assetsModel.aggregate([
+        //     { $match: { "data.game_name": req.body.game_name } },
+        //     {
+        //         $lookup: {
+        //             from: "metadata",
+        //             let: { assetId: "$id" },
+        //             pipeline: [{
+        //                 $match: {
+        //                     $expr: {
+        //                         $and: [
+        //                             { $eq: ["$id", "$$assetId"] },
+        //                             // {
+        //                             //     $eq: [
+        //                             //         { $dayOfMonth: new Date("$metadata.submission_date") },
+        //                             //         { $dayOfMonth: new Date(new Date()) }
+
+        //                             //     ]
+        //                             // },
+        //                             // {
+        //                             //     $eq: [
+        //                             //         { $month: new Date("$metadata.submission_date") },
+        //                             //         { $month: new Date() }
+
+        //                             //     ]
+        //                             // },
+        //                             // {
+        //                             //     $eq: [
+        //                             //         { $year: new Date("$metadata.submission_date") },
+        //                             //         { $year: new Date() }
+
+        //                             //     ]
+        //                             // }
+        //                         ]
+        //                     }
+        //                 }
+        //             }],
+        //             as: "metadata",
+        //         },
+        //     },
+        //     { $sort: { "metadata.metadata.score": -1 } },
+        //     { $limit: 20 }
+        // ]).toArray()
+
+        // console.log(listUser)
+        res.status(200).json(await top20Player);
 
     } catch (error) {
         console.log(error)

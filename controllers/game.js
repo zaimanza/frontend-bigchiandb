@@ -16,73 +16,64 @@ router.get('/', async (req, res, next) => {
         // get top 20
 
         const assetsModel = await Assets()
-        // find by asset utk cari game, metadata utk cari tarikh and score utk filter
 
-        console.log(req.body.game_name)
-        // by date, by top 20
-        const fetchedTransactions = await assetsModel.find({
-            "data.game_name": req.body.game_name
-        }, { projection: { id: 1, _id: 0 } }).toArray()
-
-
-        const listUser = []
-        for (const transaction of fetchedTransactions) {
-
-            const previousData = await fetchLatestTransaction(transaction.id)
-            console.log(previousData.metadata.submission_date)
-            if (dailyDate({ date: previousData.metadata.submission_date }))
-                listUser.push(previousData)
-
-        }
-
-        listUser.sort((a, b) => (a.metadata.score < b.metadata.score) ? 1 : -1)
-        const top20Player = listUser.slice(0, 20)
-
-        const aggregate = await assetsModel.aggregate([
+        let fetchedTransactions = await assetsModel.aggregate([
             { $match: { "data.game_name": req.body.game_name } },
+            { $limit: 20 },
             {
                 $lookup: {
-                    from: "metadata",
+                    from: 'metadata',
+                    as: 'metadata',
                     let: { assetId: "$id" },
-                    pipeline: [{
-                        $match: {
-                            $expr: {
-                                $and: [
-                                    { $eq: ["$id", "$$assetId"] },
-                                    // {
-                                    //     $eq: [
-                                    //         { $dayOfMonth: new Date("$metadata.submission_date") },
-                                    //         { $dayOfMonth: new Date() }
-
-                                    //     ]
-                                    // },
-                                    {
-                                        $eq: [
-                                            { $month: new Date("$metadata.submission_date") },
-                                            { $month: new Date() }
-
-                                        ]
-                                    },
-                                    // {
-                                    //     $eq: [
-                                    //         { $year: new Date("$metadata.submission_date") },
-                                    //         { $year: new Date() }
-
-                                    //     ]
-                                    // }
-                                ]
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$id", "$$assetId"] }
+                                    ]
+                                }
                             }
                         }
-                    }],
-                    as: "metadata",
+                    ]
                 },
             },
-            // { $sort: { "metadata.metadata.score": -1 } },
-            { $limit: 20 }
+            {
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $dayOfMonth: { $toDate: "$_id" } },
+                            { $dayOfMonth: new Date() }
+                        ]
+                    }
+                }
+            },
+            {
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $month: { $toDate: "$_id" } },
+                            { $month: new Date() }
+                        ]
+                    }
+                }
+            },
+            {
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $year: { $toDate: "$_id" } },
+                            { $year: new Date() }
+                        ]
+                    }
+                }
+            }
         ]).toArray()
 
+        fetchedTransactions.sort((a, b) => (a.metadata.score < b.metadata.score) ? 1 : -1)
+
         // console.log(listUser)
-        res.status(200).json(await aggregate);
+        res.status(200).json(await fetchedTransactions);
 
     } catch (error) {
         console.log(error)
@@ -140,7 +131,7 @@ router.post('/', async (req, res, next) => {
         console.log("asset_created_exit")
         console.log(await assetCreated)
 
-        res.status(200).json(await assetCreated);
+        res.status(200).json(await fetchedTransactions);
     } catch (error) {
         res.status(400).json(error);
     }

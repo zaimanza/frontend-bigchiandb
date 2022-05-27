@@ -63,7 +63,7 @@ app.get('/start_game', async (req, res) => {
         asset: {
             game_type: "mmo",
             game_category: "adventure",
-            game_name: "mario cart1"
+            game_name: "naruto league of champions"
         },
         metadata: {
             score: 0,
@@ -82,7 +82,7 @@ app.get('/append_game', async (req, res) => {
         asset: {
             game_type: "mmo",
             game_category: "adventure",
-            game_name: "mario cart"
+            game_name: "naruto league of champions"
         },
         metadata: {
             score: 9,
